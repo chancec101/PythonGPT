@@ -38,10 +38,10 @@ api_key = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key=api_key)
 
 # A function that will generate a response based on what the user inputs
-def chat_gpt(prompt):
+def chat_gpt(messages):
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content" : prompt}]
+        messages=messages   # Send the entire conversation history as messages
     )
 
     return response.choices[0].message.content.strip()
@@ -49,9 +49,28 @@ def chat_gpt(prompt):
 # A loop that will continue to run until user enters in a keyword that ends the program
 # Until the program is stopped, the user can enter in as many prompts as needed
 if __name__ == "__main__":
+
+    # Initialize the conversation history with a system message or an empty list
+    conversation_history = []
+
+    # Add a memory initialization message to remind the bot about its memory
+    conversation_history.append({"role": "system", "content": "You have memory in this session. You will remember things mentioned until the session ends."})
+
     while True:
         user_input = input("User: ")
+
+        # How the user quits the program
         if user_input.lower() in ["quit", "exit", "bye"]:
             break
-        response = chat_gpt(user_input)
-        print("Bot: ", response)
+
+        # Add the user's message to the history
+        conversation_history.append({"role": "user", "content": user_input})
+
+        # Get the response from the bot, including conversation history
+        bot_response = chat_gpt(conversation_history)
+
+        # Add the bot's response to the history
+        conversation_history.append({"role": "assistant", "content": bot_response})
+
+        # Print the bot's response
+        print("Bot: ", bot_response)
